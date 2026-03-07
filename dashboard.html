@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraWear | Advanced Health Dashboard</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            /* Dark Theme (Default) */
+            --bg-deep: #050505;
+            --bg-sidebar: rgba(5, 5, 5, 0.9);
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #06b6d4;
+            --accent-tertiary: #ec4899;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-indigo: #6366f1;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --panel-glow: rgba(139, 92, 246, 0.15);
+            --card-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
+            --chart-grid: rgba(255, 255, 255, 0.05);
+            --chart-label: rgba(255, 255, 255, 0.4);
+            --sidebar-border: rgba(255, 255, 255, 0.05);
+        }
+
+        body.light-mode {
+            /* Light Theme */
+            --bg-deep: #f8fafc;
+            --bg-sidebar: rgba(255, 255, 255, 0.9);
+            --accent-primary: #7c3aed;
+            --accent-secondary: #0891b2;
+            --accent-tertiary: #db2777;
+            --accent-success: #059669;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+            --accent-indigo: #4f46e5;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --glass-border: rgba(0, 0, 0, 0.06);
+            --text-main: #0f172a;
+            --text-muted: rgba(15, 23, 42, 0.5);
+            --panel-glow: rgba(139, 92, 246, 0.1);
+            --card-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+            --chart-grid: rgba(0, 0, 0, 0.05);
+            --chart-label: rgba(0, 0, 0, 0.4);
+            --sidebar-border: rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            margin: 0;
+            overflow: hidden;
+            letter-spacing: -0.01em;
+            transition: background-color 0.5s ease, color 0.5s ease;
+        }
+
+        body.light-mode .text-gray-400 { color: #64748b; }
+        body.light-mode .text-gray-500 { color: #475569; }
+        body.light-mode .text-white { color: #0f172a; }
+        body.light-mode .glass-panel { 
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); 
+        }
+        body.light-mode .glass-panel::after {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, transparent 100%);
+        }
+        body.light-mode .glass-panel:hover {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1), 0 0 20px 0 var(--panel-glow);
+        }
+        body.light-mode .sidebar { background: var(--bg-sidebar); }
+        body.light-mode .nav-link:hover { background: rgba(0, 0, 0, 0.03); color: var(--accent-primary); }
+        body.light-mode .nav-link.active { background: rgba(124, 58, 237, 0.1); color: var(--accent-primary); }
+        body.light-mode .glow-bg { opacity: 0.2; }
+        body.light-mode .main-content {
+            background: radial-gradient(circle at 50% 0%, rgba(124, 58, 237, 0.03) 0%, transparent 70%);
+        }
+        body.light-mode ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        body.light-mode ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        body.light-mode .battery-level {
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        body.light-mode .battery-level::after {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        body.light-mode .text-gray-200 { color: #1e293b; }
+        body.light-mode .text-gray-300 { color: #334155; }
+        body.light-mode .bg-white\/5 { background: rgba(0, 0, 0, 0.03); }
+        body.light-mode .border-white\/5 { border-color: rgba(0, 0, 0, 0.05); }
+        body.light-mode .border-white\/10 { border-color: rgba(0, 0, 0, 0.08); }
+        body.light-mode .hover\:bg-white\/10:hover { background: rgba(0, 0, 0, 0.05); }
+        body.light-mode .hover\:border-white\/10:hover { border-color: rgba(0, 0, 0, 0.1); }
+        body.light-mode .modal-overlay { background: rgba(255, 255, 255, 0.8); }
+        body.light-mode .modal-content { 
+            background: rgba(255, 255, 255, 0.98); 
+            box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.2);
+        }
+        body.light-mode .report-section { border-left-color: rgba(0, 0, 0, 0.05); }
+        body.light-mode .before\:bg-indigo-500::before { background: var(--accent-primary); }
+        body.light-mode .border-\[\#050505\] { border-color: #f8fafc; }
+
+        .glass-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px 0 var(--panel-glow);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 140px;
+            width: 100%;
+        }
+
+        .stat-card {
+            position: relative;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at top right, rgba(139, 92, 246, 0.1), transparent 70%);
+            pointer-events: none;
+        }
+
+        /* Sidebar & Layout */
+        .sidebar {
+            width: 300px;
+            height: 100vh;
+            border-right: 1px solid var(--sidebar-border);
+            background: var(--bg-sidebar);
+            backdrop-filter: blur(30px);
+            z-index: 50;
+            transition: background-color 0.5s ease, border-color 0.5s ease;
+        }
+
+        .main-content {
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            padding-bottom: 80px;
+            background: radial-gradient(circle at 50% 0%, rgba(139, 92, 246, 0.05) 0%, transparent 70%);
+            animation: slideUpFade 1s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+
+        @keyframes slideUpFade {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 28px;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 24px;
+            transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+            cursor: pointer;
+            margin: 4px 0;
+            position: relative;
+        }
+
+        .nav-link:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.03);
+            padding-left: 32px;
+        }
+
+        .nav-link.active {
+            color: white;
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            box-shadow: 0 10px 30px -5px rgba(139, 92, 246, 0.2);
+            animation: pulse-glow-vivid 4s ease-in-out infinite;
+        }
+
+        /* Sidebar Entrance Stagger */
+        .sidebar .nav-link {
+            opacity: 0;
+            animation: sidebar-slide 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        .sidebar .nav-link:nth-child(1) { animation-delay: 0.1s; }
+        .sidebar .nav-link:nth-child(2) { animation-delay: 0.2s; }
+        .sidebar .nav-link:nth-child(3) { animation-delay: 0.3s; }
+        .sidebar .nav-link:nth-child(4) { animation-delay: 0.4s; }
+        .sidebar .nav-link:nth-child(5) { animation-delay: 0.5s; }
+
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            width: 4px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 4px;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .glow-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 10% 10%, rgba(139, 92, 246, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.05) 0%, transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* --- New Advanced Animations --- */
+        @keyframes reveal-card {
+            0% { opacity: 0; transform: translateY(30px) scale(0.95); filter: blur(10px); }
+            100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        @keyframes sidebar-slide {
+            0% { opacity: 0; transform: translateX(-30px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse-glow-vivid {
+            0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); border-color: rgba(255, 255, 255, 0.08); }
+            50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.4); border-color: rgba(139, 92, 246, 0.3); }
+        }
+
+        @keyframes header-reveal {
+            0% { opacity: 0; transform: translateY(-20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Apply entrance animations to structural elements */
+        .sidebar {
+            animation: sidebar-slide 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+
+        header {
+            animation: header-reveal 0.8s cubic-bezier(0.23, 1, 0.32, 1) 0.2s both;
+        }
+
+        /* Staggered Grid Reveal - only when active */
+        .tab-content.active .glass-panel {
+            animation: reveal-card 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+
+        /* Ambient floating for specific highlighted elements */
+        .float-anim {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Dynamic Glow for active items */
+        .glow-active {
+            animation: pulse-glow-vivid 4s ease-in-out infinite;
+        }
+
+        /* Smooth transitions for interactive elements */
+        .nav-link, .premium-btn, .action-btn, .modal-content, .health-score-ring {
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), 
+                        opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1), 
+                        background 0.3s cubic-bezier(0.23, 1, 0.32, 1), 
+                        box-shadow 0.3s cubic-bezier(0.23, 1, 0.32, 1),
+                        padding 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .glass-panel {
+            border-radius: 32px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            position: relative;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1), 
+                        box-shadow 0.5s cubic-bezier(0.23, 1, 0.32, 1), 
+                        background 0.5s cubic-bezier(0.23, 1, 0.32, 1), 
+                        border-color 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .battery-level {
+            height: 12px;
+            width: 26px;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 6px;
+            position: relative;
+            padding: 1px;
+        }
+
+        .battery-level::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: 3px;
+            width: 3px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 0 2px 2px 0;
+        }
+
+        .health-score-ring {
+            width: 160px;
+            height: 160px;
+            filter: drop-shadow(0 0 25px rgba(139, 92, 246, 0.3));
+        }
+
+        .premium-btn {
+            background: var(--accent-primary);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .premium-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .premium-btn:hover::before {
+            left: 100%;
+        }
+
+        .premium-btn:hover {
+            box-shadow: 0 0 25px rgba(139, 92, 246, 0.5);
+            transform: scale(1.02);
+        }
+
+        /* Bio Report Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            border-radius: 40px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            transform: translateY(30px);
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .report-section {
+            border-left: 2px solid rgba(255, 255, 255, 0.05);
+            padding-left: 24px;
+            margin: 24px 0;
+        }
+    </style>
+</head>
+
+<body class="flex">
+    <div class="glow-bg"></div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar flex flex-col p-6 gap-8">
+        <div class="flex items-center gap-3 px-2">
+            <div class="w-10 h-10 rounded-2xl bg-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <i data-lucide="activity" class="w-6 h-6 text-white"></i>
+            </div>
+            <span class="text-2xl font-black tracking-tighter italic">AURA<span class="text-purple-400">WEAR</span></span>
+        </div>
+
+        <nav class="flex flex-col gap-2">
+            <div onclick="switchTab('overview')" class="nav-link active" data-tab-btn="overview">
+                <i data-lucide="layout-grid" class="w-5 h-5"></i> Overview
+            </div>
+            <div onclick="switchTab('vitals')" class="nav-link" data-tab-btn="vitals">
+                <i data-lucide="heart-pulse" class="w-5 h-5"></i> Vitals
+            </div>
+            <div onclick="switchTab('activity')" class="nav-link" data-tab-btn="activity">
+                <i data-lucide="zap" class="w-5 h-5"></i> Activity
+            </div>
+            <div onclick="switchTab('sleep')" class="nav-link" data-tab-btn="sleep">
+                <i data-lucide="moon-star" class="w-5 h-5"></i> Sleep & Stress
+            </div>
+            <div onclick="switchTab('history')" class="nav-link" data-tab-btn="history">
+                <i data-lucide="bar-chart-3" class="w-5 h-5"></i> History
+            </div>
+        </nav>
+
+        <div onclick="showToast('Battery: 82% (14h remaining)', 'info')" class="mt-auto glass-panel p-5 flex flex-col gap-4 border-t border-white/5 cursor-pointer hover:bg-white/5 transition-all">
+            <div class="flex items-center justify-between text-[10px] text-gray-500 uppercase tracking-widest font-black">
+                <span>Ring Status</span>
+                <span class="flex items-center gap-1.5 text-emerald-400">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Live
+                </span>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="battery-level">
+                    <div class="h-full bg-emerald-500" style="width: 82%"></div>
+                </div>
+                <span class="text-sm font-bold tracking-tight text-gray-200">82% Battery</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content p-8 md:p-12">
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h2 id="tab-title" class="text-4xl font-black tracking-tight">Health <span class="text-purple-400">Overview</span></h2>
+                <p class="text-gray-500 text-sm mt-2 font-medium">Friday, March 6, 2026</p>
+            </div>
+            <div class="flex items-center gap-5">
+                <div class="w-12 h-12 rounded-2xl glass-panel flex items-center justify-center hover:bg-white/10 cursor-pointer transition-all border-white/5 shadow-[0_0_20px_rgba(0,0,0,0.3)]" id="theme-toggle" onclick="toggleTheme()">
+                    <i data-lucide="sun" class="w-6 h-6 text-yellow-400 hidden" id="theme-sun"></i>
+                    <i data-lucide="moon" class="w-6 h-6 text-purple-400" id="theme-moon"></i>
+                </div>
+                <div class="glass-panel px-5 py-2.5 flex items-center gap-3 text-rose-400 text-xs font-black uppercase tracking-wider border-rose-500/20 bg-rose-500/5 shadow-[0_0_15px_rgba(244,63,94,0.1)]">
+                    <i data-lucide="flame" class="w-4 h-4 animate-bounce"></i> High Stress Warning
+                </div>
+                <div class="w-12 h-12 rounded-2xl glass-panel flex items-center justify-center hover:bg-white/10 cursor-pointer transition-all border-white/5 shadow-[0_0_20px_rgba(0,0,0,0.3)] group/medical" onclick="switchTab('vitals')" title="Emergency Medical ID">
+                    <i data-lucide="shield-alert" class="w-6 h-6 text-rose-400 group-hover/medical:animate-pulse"></i>
+                </div>
+                <a href="doctor-portal.html" class="w-12 h-12 rounded-2xl glass-panel flex items-center justify-center hover:bg-white/10 cursor-pointer transition-all border-white/5 shadow-[0_0_20px_rgba(0,0,0,0.3)] group/doctor" title="Doctor Portal Access">
+                    <i data-lucide="stethoscope" class="w-6 h-6 text-blue-400 group-hover/doctor:scale-110 transition-transform"></i>
+                </a>
+                <div class="w-12 h-12 rounded-2xl glass-panel flex items-center justify-center hover:bg-white/10 cursor-pointer transition-all border-white/5 shadow-[0_0_20px_rgba(0,0,0,0.3)]">
+                    <i data-lucide="bell" class="w-6 h-6 text-gray-400"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- TABS CONTENT -->
+
+        <!-- 1. OVERVIEW TAB -->
+        <div id="overview" class="tab-content active">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                <!-- Overall Health Score (Feature 8) -->
+                <div class="glass-panel p-8 flex flex-col items-center justify-center text-center relative overflow-hidden group" style="animation-delay: 0.1s;">
+                    <div class="absolute -top-16 -right-16 w-48 h-48 bg-purple-500/10 rounded-full blur-[80px] group-hover:bg-purple-500/20 transition-all duration-700"></div>
+                    <div class="absolute -bottom-16 -left-16 w-48 h-48 bg-cyan-500/10 rounded-full blur-[80px] group-hover:bg-cyan-500/20 transition-all duration-700"></div>
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-tr from-purple-500/5 via-transparent to-cyan-500/5 pointer-events-none"></div>
+                    <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-[0.25em] mb-8 relative z-10">Overall Health Score</h3>
+                    <div class="relative flex items-center justify-center health-score-ring mb-8 scale-110 relative z-10">
+                        <canvas id="healthScoreChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-5xl font-black tracking-tighter text-purple-400 drop-shadow-[0_0_20px_rgba(139,92,246,0.4)] group-hover:scale-110 transition-transform duration-500">92</span>
+                            <div class="px-4 py-1.5 bg-emerald-500/10 rounded-full border border-emerald-500/20 mt-3 shadow-[0_0_15px_rgba(16,185,129,0.1)] group-hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] group-hover:bg-emerald-500/20 transition-all duration-500">
+                                <span class="text-[9px] text-emerald-400 font-black uppercase tracking-widest">Excellent</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="relative z-10 mt-2">
+                        <p class="text-[11px] text-gray-400 px-6 leading-relaxed font-medium italic opacity-80 group-hover:opacity-100 transition-opacity">"Your body is performing at its peak potential today."</p>
+                        <div class="flex justify-center gap-2 mt-6">
+                            <span class="w-1.5 h-1.5 rounded-full bg-purple-500/40"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500/40"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-500/40"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fitness Readiness Score (Feature 17) -->
+                <div class="glass-panel p-8 group relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl group-hover:bg-amber-500/10 transition-all"></div>
+                    <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-all"></div>
+                    <div class="flex justify-between items-start mb-8 relative z-10">
+                        <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-[0.25em]">Readiness Score</h3>
+                        <div class="p-3.5 bg-gradient-to-br from-amber-500/20 to-orange-500/20 rounded-2xl text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)] group-hover:scale-110 group-hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] transition-all border border-amber-500/20">
+                            <i data-lucide="zap" class="w-6 h-6 fill-amber-400/20"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 mb-6 relative z-10">
+                        <span class="text-7xl font-black text-purple-400 drop-shadow-[0_0_25px_rgba(139,92,246,0.4)] group-hover:tracking-widest transition-all duration-700">84</span>
+                        <span class="text-gray-600 text-xl font-bold">/ 100</span>
+                    </div>
+                    <div class="px-4 py-2 bg-white/5 rounded-xl border border-white/10 mb-8 inline-flex items-center gap-3 relative z-10 group-hover:bg-amber-500/5 transition-all">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_15px_rgba(245,158,11,1)] animate-pulse"></span>
+                        <span class="text-sm font-bold text-gray-200">Optimal for training</span>
+                    </div>
+                    <div class="space-y-6 relative z-10">
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-[10px] text-gray-500 font-black uppercase tracking-widest"><span>Recovery Status</span><span class="text-indigo-400 font-black">92%</span></div>
+                            <div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-white/5 p-[1px]"><div class="bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-400 h-full w-[92%] rounded-full shadow-[0_0_15px_rgba(99,102,241,0.6)]"></div></div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-[10px] text-gray-500 font-black uppercase tracking-widest"><span>Daily Activity</span><span class="text-amber-400 font-black">74%</span></div>
+                            <div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-white/5 p-[1px]"><div class="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-400 h-full w-[74%] rounded-full shadow-[0_0_15px_rgba(245,158,11,0.6)]"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Health Insights (Feature 16) -->
+                <div class="glass-panel p-8 bg-gradient-to-br from-indigo-500/10 via-transparent to-rose-500/5 border-indigo-500/10 group relative overflow-hidden">
+                    <div class="absolute -top-32 -left-32 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl group-hover:bg-indigo-500/20 transition-all"></div>
+                    <div class="absolute -bottom-32 -right-32 w-80 h-80 bg-rose-500/5 rounded-full blur-3xl group-hover:bg-rose-500/10 transition-all"></div>
+                    <div class="flex items-center gap-4 mb-10 relative z-10">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-[0_0_25px_rgba(99,102,241,0.3)] group-hover:shadow-[0_0_45px_rgba(99,102,241,0.6)] group-hover:scale-110 transition-all">
+                            <i data-lucide="sparkles" class="w-7 h-7"></i>
+                        </div>
+                        <h3 class="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-300">AI Health Insights</h3>
+                    </div>
+                    <div class="space-y-5 relative z-10">
+                        <div class="p-5 bg-white/5 rounded-2xl border border-white/5 text-[11px] leading-relaxed text-gray-300 relative overflow-hidden hover:border-indigo-500/40 hover:bg-white/10 transition-all group/insight">
+                            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 via-purple-500 to-cyan-500 shadow-[0_0_15px_rgba(99,102,241,0.6)]"></div>
+                            "Your <strong class="text-indigo-400 font-black">HRV</strong> spiked during sleep. This suggests your body has fully recovered from yesterday's session."
+                        </div>
+                        <div class="p-5 bg-white/5 rounded-2xl border border-white/5 text-[11px] leading-relaxed text-gray-300 relative overflow-hidden hover:border-rose-500/40 hover:bg-white/10 transition-all group/insight">
+                            <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-rose-500 via-pink-500 to-amber-500 shadow-[0_0_15px_rgba(244,63,94,0.6)]"></div>
+                            "Stress recovery is taking longer after 8 PM. Consider a <strong class="text-rose-400 font-black">meditation</strong> session tonight."
+                        </div>
+                        <button onclick="toggleBioReport(true)" class="w-full mt-4 py-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-rose-600 text-white font-black text-[11px] uppercase tracking-widest rounded-2xl shadow-[0_0_25px_rgba(139,92,246,0.4)] hover:shadow-[0_0_45px_rgba(139,92,246,0.7)] hover:scale-[1.03] transition-all active:scale-95 border border-white/10">
+                            Generate Full Bio-Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recovery & Alerts (Feature 9, 11) -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div onclick="switchTab('sleep')" class="glass-panel p-6 flex items-center gap-6 stat-card group relative overflow-hidden border-emerald-500/10 cursor-pointer">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-600/20 flex items-center justify-center text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)] group-hover:bg-emerald-500/30 group-hover:shadow-[0_0_35px_rgba(16,185,129,0.5)] group-hover:scale-110 transition-all relative z-10 border border-emerald-500/20">
+                        <i data-lucide="shield-check" class="w-7 h-7"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Recovery</p>
+                        <p class="text-2xl font-black text-emerald-400 drop-shadow-[0_0_12px_rgba(16,185,129,0.4)]">STABLE</p>
+                    </div>
+                </div>
+                <div onclick="switchTab('vitals')" class="glass-panel p-6 flex items-center gap-6 stat-card group relative overflow-hidden border-rose-500/10 cursor-pointer">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-600/20 flex items-center justify-center text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.2)] group-hover:bg-rose-500/30 group-hover:shadow-[0_0_35px_rgba(244,63,94,0.5)] group-hover:scale-110 transition-all relative z-10 border border-rose-500/20">
+                        <i data-lucide="alert-circle" class="w-7 h-7 animate-pulse"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Alerts</p>
+                        <p class="text-2xl font-black text-rose-400 drop-shadow-[0_0_12px_rgba(244,63,94,0.4)]">1 ACTIVE</p>
+                    </div>
+                </div>
+                <div onclick="showToast('Battery: 82% (14h remaining)', 'info')" class="glass-panel p-6 flex items-center gap-6 stat-card group relative overflow-hidden border-amber-500/10 cursor-pointer">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 flex items-center justify-center text-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.2)] group-hover:bg-amber-500/30 group-hover:shadow-[0_0_35px_rgba(245,158,11,0.5)] group-hover:scale-110 transition-all relative z-10 border border-amber-500/20">
+                        <i data-lucide="battery-medium" class="w-7 h-7"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Battery</p>
+                        <p class="text-2xl font-black text-amber-400 drop-shadow-[0_0_12px_rgba(245,158,11,0.4)]">82%</p>
+                    </div>
+                </div>
+                <div onclick="switchTab('activity')" class="glass-panel p-6 flex items-center gap-6 stat-card group relative overflow-hidden border-indigo-500/10 cursor-pointer">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl group-hover:bg-indigo-500/20 transition-all"></div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 flex items-center justify-center text-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.2)] group-hover:bg-indigo-500/30 group-hover:shadow-[0_0_35px_rgba(99,102,241,0.5)] group-hover:scale-110 transition-all relative z-10 border border-indigo-500/20">
+                        <i data-lucide="check-circle-2" class="w-7 h-7"></i>
+                    </div>
+                    <div class="relative z-10">
+                        <p class="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-1">Goals</p>
+                        <p class="text-2xl font-black text-indigo-400 drop-shadow-[0_0_12px_rgba(99,102,241,0.4)] uppercase">On Track</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. VITALS TAB -->
+        <div id="vitals" class="tab-content">
+            <!-- Emergency Medical ID (New Feature) -->
+            <div class="glass-panel p-8 mb-10 border-rose-500/20 bg-rose-500/5 relative overflow-hidden group">
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-rose-500/10 rounded-full blur-3xl group-hover:bg-rose-500/20 transition-all"></div>
+                <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl group-hover:bg-rose-500/10 transition-all"></div>
+                
+                <div class="flex flex-col md:flex-row justify-between items-center gap-8 relative z-10">
+                    <div class="flex items-center gap-6">
+                        <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-600/20 flex items-center justify-center text-rose-400 shadow-[0_0_25px_rgba(244,63,94,0.3)] border border-rose-500/30">
+                            <i data-lucide="shield-alert" class="w-8 h-8 animate-pulse"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-gray-400 text-[10px] font-black uppercase tracking-[0.25em] mb-1">Emergency Medical ID</h3>
+                            <p class="text-2xl font-black text-white tracking-tight">Access Protocol Active</p>
+                            <p class="text-xs text-gray-500 mt-1 max-w-md">In an emergency, medical professionals can use this serial number to access your vital health records via the AuraWear Doctor Portal.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col items-center md:items-end gap-4">
+                        <div class="flex items-center gap-4 bg-black/40 px-6 py-4 rounded-2xl border border-white/10 shadow-2xl group/serial cursor-pointer hover:border-rose-500/40 transition-all" onclick="copyEmergencyID()">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1">Your Serial Number</span>
+                                <span class="text-xl font-black text-rose-400 font-mono tracking-[0.2em]" id="emergency-id">AW-EM-8429-1052</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-400 group-hover/serial:text-rose-400 group-hover/serial:bg-rose-500/10 transition-all">
+                                <i data-lucide="copy" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 text-[10px] text-emerald-400 font-bold uppercase tracking-widest">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Verified Doctor Access Enabled
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+                <!-- Body Temp (Feature 1) -->
+                <div class="glass-panel p-6 stat-card group relative overflow-hidden">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/10 transition-all"></div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Body Temperature</h3>
+                        <div class="p-2.5 bg-rose-500/10 rounded-2xl text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(244,63,94,0.3)] transition-all">
+                            <i data-lucide="thermometer" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 relative z-10">
+                        <span class="text-4xl font-black tracking-tighter text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.3)]">98.6<span class="text-sm ml-1">°F</span></span>
+                    </div>
+                    <div class="mt-4 text-[10px] text-emerald-400 font-bold flex items-center gap-2 relative z-10">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.6)]"></span>
+                        Optimal Baseline
+                    </div>
+                </div>
+                <!-- Resp Rate (Feature 3) -->
+                <div class="glass-panel p-6 stat-card group relative overflow-hidden">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl group-hover:bg-cyan-500/10 transition-all"></div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Respiratory Rate</h3>
+                        <div class="p-2.5 bg-cyan-500/10 rounded-2xl text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(6,182,212,0.3)] transition-all">
+                            <i data-lucide="wind" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 relative z-10">
+                        <span class="text-4xl font-black tracking-tighter text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]">14</span>
+                        <span class="text-gray-500 text-sm font-bold">Br/min</span>
+                    </div>
+                    <div class="mt-4 text-[10px] text-indigo-400 font-bold relative z-10">Normal Range: 12-16</div>
+                </div>
+                <!-- HRV (Feature 6) -->
+                <div class="glass-panel p-6 stat-card group relative overflow-hidden">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-purple-500/5 rounded-full blur-2xl group-hover:bg-purple-500/10 transition-all"></div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Heart Rate Variability</h3>
+                        <div class="p-2.5 bg-purple-500/10 rounded-xl text-purple-400 shadow-[0_0_15px_rgba(139,92,246,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all">
+                            <i data-lucide="activity" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 relative z-10">
+                        <span class="text-4xl font-black tracking-tighter text-purple-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]">62</span>
+                        <span class="text-gray-500 text-sm font-bold">ms</span>
+                    </div>
+                    <div class="mt-4 text-[10px] text-emerald-400 font-bold flex items-center gap-2 relative z-10">
+                        <i data-lucide="trending-up" class="w-4 h-4"></i> +12% from average
+                    </div>
+                </div>
+                <!-- Blood Pressure (Feature 19) -->
+                <div class="glass-panel p-6 stat-card group relative overflow-hidden">
+                    <div class="absolute -top-12 -right-12 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Blood Pressure (Est)</h3>
+                        <div class="p-2.5 bg-emerald-500/10 rounded-xl text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)] group-hover:scale-110 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all">
+                            <i data-lucide="droplet" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-2 relative z-10">
+                        <span class="text-4xl font-black tracking-tighter text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">118/76</span>
+                        <span class="text-gray-500 text-sm font-bold">mmHg</span>
+                    </div>
+                    <div class="mt-4 text-[10px] text-emerald-400 font-bold italic relative z-10">Healthy & Stable</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Nighttime HR (Feature 27) -->
+                <div class="glass-panel p-8 group relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all"></div>
+                    <div class="flex justify-between items-center mb-8 relative z-10">
+                        <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Nighttime Heart Rate</h3>
+                        <div class="px-4 py-1.5 bg-indigo-500/10 rounded-full text-[10px] font-black text-indigo-400 border border-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.2)] group-hover:shadow-[0_0_25px_rgba(99,102,241,0.4)] transition-all">7H SLEEP DATA</div>
+                    </div>
+                    <div class="chart-container h-[200px] relative z-10">
+                        <canvas id="nightHRChart"></canvas>
+                    </div>
+                    <div class="mt-8 flex justify-between items-center text-xs font-bold relative z-10">
+                        <span class="text-gray-500">Avg Nightly: <span class="text-white text-sm font-black">54 BPM</span></span>
+                        <span class="text-emerald-400 flex items-center gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5 shadow-[0_0_10px_rgba(16,185,129,0.4)]"></i>
+                            Highly Consistent
+                        </span>
+                    </div>
+                </div>
+                <!-- Oxygen Trends & Hydration (Feature 26, 5) -->
+                <div class="flex flex-col gap-8">
+                    <div class="glass-panel p-8 flex justify-between items-center relative overflow-hidden group">
+                        <div class="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div class="relative z-10">
+                            <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-4">Oxygen Saturation</h3>
+                            <div class="flex items-baseline gap-3">
+                                <span class="text-5xl font-black tracking-tighter text-rose-400 drop-shadow-[0_0_15px_rgba(236,72,153,0.3)]">98<span class="text-2xl ml-1">%</span></span>
+                                <span class="text-[10px] text-gray-500 uppercase font-black tracking-widest">SpO2 Avg</span>
+                            </div>
+                        </div>
+                        <div class="w-40 h-20 relative z-10 group-hover:scale-105 transition-transform">
+                            <canvas id="oxygenTrendChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="glass-panel p-8 group relative overflow-hidden">
+                        <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-cyan-500/10 transition-all"></div>
+                        <div class="flex justify-between items-center mb-8 relative z-10">
+                            <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Hydration Progress</h3>
+                            <span class="text-cyan-400 text-sm font-black tracking-tighter px-4 py-1.5 bg-cyan-500/10 rounded-xl border border-cyan-500/20">1.2L <span class="text-gray-500 text-xs">/ 2.5L</span></span>
+                        </div>
+                        <div class="flex gap-3 relative z-10">
+                            <div class="flex-1 h-4 bg-gradient-to-r from-cyan-600 via-cyan-400 to-cyan-500 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.6)] border border-cyan-400/30 group-hover:scale-y-110 transition-all"></div>
+                            <div class="flex-1 h-4 bg-gradient-to-r from-cyan-600 via-cyan-400 to-cyan-500 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.6)] border border-cyan-400/30 group-hover:scale-y-110 transition-all"></div>
+                            <div class="flex-1 h-4 bg-white/5 rounded-full border border-white/5 group-hover:bg-white/10 transition-all"></div>
+                            <div class="flex-1 h-4 bg-white/5 rounded-full border border-white/5 group-hover:bg-white/10 transition-all"></div>
+                            <div class="flex-1 h-4 bg-white/5 rounded-full border border-white/5 group-hover:bg-white/10 transition-all"></div>
+                        </div>
+                        <p class="mt-8 text-[11px] text-gray-400 font-medium italic relative z-10">"Hydration is key for peak HRV performance today."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. ACTIVITY TAB -->
+        <div id="activity" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                <!-- Step Counter & Distance (Feature 4, 24) -->
+                <div class="glass-panel p-8 lg:col-span-2 group relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] group-hover:bg-indigo-500/20 transition-all duration-700"></div>
+                    <div class="flex justify-between items-start mb-10 relative z-10">
+                        <div>
+                            <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-3">Step Counter</h3>
+                            <div class="flex items-baseline gap-4">
+                                <span class="text-7xl font-black tracking-tighter text-indigo-400 drop-shadow-[0_0_20px_rgba(99,102,241,0.3)]">8,402</span>
+                                <span class="text-gray-500 text-xl font-bold">/ 10,000</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-3">Distance</h3>
+                            <p class="text-4xl font-black tracking-tighter text-cyan-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.4)]">6.2 km</p>
+                        </div>
+                    </div>
+                    <div class="w-full bg-white/5 h-8 rounded-full overflow-hidden mb-10 p-2 border border-white/10 relative z-10 shadow-inner">
+                        <div class="bg-gradient-to-r from-indigo-600 via-purple-500 via-pink-500 to-cyan-500 h-full rounded-full shadow-[0_0_35px_rgba(139,92,246,0.8)] group-hover:shadow-[0_0_50px_rgba(139,92,246,1)] transition-all" style="width: 84%"></div>
+                    </div>
+                    <div class="grid grid-cols-4 gap-8 relative z-10">
+                        <div class="text-center group/item">
+                            <p class="text-[10px] text-gray-500 uppercase font-black mb-2 tracking-widest">Active Time</p>
+                            <p class="text-lg font-black text-indigo-400 group-hover:text-indigo-300 transition-colors">1h 12m</p>
+                        </div>
+                        <div class="text-center border-l border-white/10 group/item">
+                            <p class="text-[10px] text-gray-500 uppercase font-black mb-2 tracking-widest">Floors</p>
+                            <p class="text-lg font-black text-rose-400 group-hover:text-rose-300 transition-colors">12</p>
+                        </div>
+                        <div class="text-center border-l border-white/10 group/item">
+                            <p class="text-[10px] text-gray-500 uppercase font-black mb-2 tracking-widest">Pace</p>
+                            <p class="text-lg font-black text-amber-400 group-hover:text-amber-300 transition-colors">9'42"</p>
+                        </div>
+                        <div class="text-center border-l border-white/10 group/item">
+                            <p class="text-[10px] text-gray-500 uppercase font-black mb-2 tracking-widest">V02 Max</p>
+                            <p class="text-lg font-black text-emerald-400 group-hover:text-emerald-300 transition-colors">48.2</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calories & Goals (Feature 20, 15) -->
+                <div class="glass-panel p-8 group relative overflow-hidden">
+                    <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-rose-500/5 rounded-full blur-3xl group-hover:bg-rose-500/10 transition-all"></div>
+                    <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-10 relative z-10">Calorie Balance</h3>
+                    <div class="space-y-10 relative z-10">
+                        <div>
+                            <div class="flex justify-between text-[10px] text-gray-500 uppercase font-black mb-4 tracking-widest">
+                                <span>Energy Burned</span>
+                                <span class="text-rose-400 font-black">2,140 kcal</span>
+                            </div>
+                            <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/10">
+                                <div class="bg-gradient-to-r from-rose-600 via-pink-600 to-orange-500 h-full w-[75%] shadow-[0_0_15px_rgba(244,63,94,0.6)]"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] text-gray-500 uppercase font-black mb-4 tracking-widest">
+                                <span>Calorie Intake</span>
+                                <span class="text-emerald-400 font-black">1,850 kcal</span>
+                            </div>
+                            <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden border border-white/10">
+                                <div class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-500 h-full w-[60%] shadow-[0_0_15px_rgba(16,185,129,0.6)]"></div>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-white/5 rounded-3xl text-center mt-6 border border-white/10 relative overflow-hidden group/net">
+                            <div class="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover/net:opacity-100 transition-opacity"></div>
+                            <p class="text-[10px] text-gray-500 uppercase font-black mb-2 tracking-widest">Net Deficit</p>
+                            <p class="text-4xl font-black text-emerald-400 tracking-tighter drop-shadow-[0_0_15px_rgba(16,185,129,0.4)]">-290 <span class="text-base">kcal</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- HR Zones (Feature 23) -->
+                <div class="glass-panel p-8 group relative overflow-hidden">
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all"></div>
+                    <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-10 relative z-10">Heart Rate Zones</h3>
+                    <div class="space-y-8 relative z-10">
+                        <div class="flex items-center gap-6 group/zone">
+                            <span class="w-24 text-[10px] text-gray-500 uppercase font-black tracking-widest group-hover/zone:text-rose-400 transition-colors">Peak</span>
+                            <div class="flex-1 bg-white/5 h-3 rounded-full overflow-hidden border border-white/5"><div class="bg-gradient-to-r from-rose-700 to-rose-500 h-full w-[15%] shadow-[0_0_15px_rgba(244,63,94,0.6)]"></div></div>
+                            <span class="text-sm font-black w-12 text-right text-rose-400">12m</span>
+                        </div>
+                        <div class="flex items-center gap-6 group/zone">
+                            <span class="w-24 text-[10px] text-gray-500 uppercase font-black tracking-widest group-hover/zone:text-indigo-400 transition-colors">Cardio</span>
+                            <div class="flex-1 bg-white/5 h-3 rounded-full overflow-hidden border border-white/5"><div class="bg-gradient-to-r from-indigo-700 to-indigo-500 h-full w-[45%] shadow-[0_0_15px_rgba(99,102,241,0.6)]"></div></div>
+                            <span class="text-sm font-black w-12 text-right text-indigo-400">42m</span>
+                        </div>
+                        <div class="flex items-center gap-6 group/zone">
+                            <span class="w-24 text-[10px] text-gray-500 uppercase font-black tracking-widest group-hover/zone:text-cyan-400 transition-colors">Fat Burn</span>
+                            <div class="flex-1 bg-white/5 h-3 rounded-full overflow-hidden border border-white/5"><div class="bg-gradient-to-r from-cyan-700 to-cyan-500 h-full w-[85%] shadow-[0_0_15px_rgba(6,182,212,0.6)]"></div></div>
+                            <span class="text-sm font-black w-12 text-right text-cyan-400">18h</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Activity Type Detection (Feature 18) -->
+                <div class="glass-panel p-8 group relative overflow-hidden">
+                    <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-cyan-500/10 transition-all"></div>
+                    <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-10 relative z-10">Activity Detection</h3>
+                    <div class="space-y-6 relative z-10">
+                        <div class="flex items-center justify-between p-5 bg-white/5 rounded-3xl border border-white/10 group/item hover:border-cyan-500/40 hover:bg-cyan-500/5 transition-all cursor-pointer">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 bg-cyan-500/10 rounded-2xl flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)] group-hover/item:scale-110 transition-all">
+                                    <i data-lucide="footprints" class="w-7 h-7"></i>
+                                </div>
+                                <div><p class="text-base font-black text-gray-100">Brisk Walk</p><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">2:45 PM - 3:15 PM</p></div>
+                            </div>
+                            <span class="text-base font-black text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.3)]">3.2 km</span>
+                        </div>
+                        <div class="flex items-center justify-between p-5 bg-white/5 rounded-3xl border border-white/10 group/item hover:border-rose-500/40 hover:bg-rose-500/5 transition-all cursor-pointer">
+                            <div class="flex items-center gap-5">
+                                <div class="w-14 h-14 bg-rose-500/10 rounded-2xl flex items-center justify-center text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.2)] group-hover/item:scale-110 transition-all">
+                                    <i data-lucide="zap" class="w-7 h-7"></i>
+                                </div>
+                                <div><p class="text-base font-black text-gray-100">Interval Run</p><p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">7:10 AM - 7:40 AM</p></div>
+                            </div>
+                            <span class="text-base font-black text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.3)]">4.5 km</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. SLEEP & STRESS TAB -->
+        <div id="sleep" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                <div class="glass-panel p-8 group relative overflow-hidden">
+                    <div class="absolute inset-0 bg-indigo-500/5 backdrop-blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl group-hover:bg-indigo-500/10 transition-all"></div>
+                    <div class="flex justify-between items-center mb-8 relative z-10">
+                        <div>
+                            <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2">Sleep Analysis</h3>
+                            <p class="text-3xl font-black tracking-tighter text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.3)]">7h 42m <span class="text-sm text-gray-500">Total</span></p>
+                        </div>
+                        <div class="p-3 bg-indigo-500/10 rounded-xl text-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
+                            <i data-lucide="moon" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="h-28 w-full flex items-end gap-1.5 mb-8 relative z-10">
+                        <div class="flex-1 bg-indigo-600/80 h-[25%] rounded-t-lg shadow-[0_0_15px_rgba(79,70,229,0.3)] transition-all hover:h-[30%]" title="Deep"></div>
+                        <div class="flex-1 bg-indigo-400/80 h-[65%] rounded-t-lg shadow-[0_0_15px_rgba(129,140,248,0.3)] transition-all hover:h-[70%]" title="Light"></div>
+                        <div class="flex-1 bg-cyan-400/80 h-[45%] rounded-t-lg shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all hover:h-[50%]" title="REM"></div>
+                        <div class="flex-1 bg-indigo-600/80 h-[30%] rounded-t-lg shadow-[0_0_15px_rgba(79,70,229,0.3)] transition-all hover:h-[35%]" title="Deep"></div>
+                        <div class="flex-1 bg-indigo-400/80 h-[75%] rounded-t-lg shadow-[0_0_15px_rgba(129,140,248,0.3)] transition-all hover:h-[80%]" title="Light"></div>
+                        <div class="flex-1 bg-cyan-400/80 h-[40%] rounded-t-lg shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all hover:h-[45%]" title="REM"></div>
+                        <div class="flex-1 bg-rose-500/80 h-[15%] rounded-t-lg shadow-[0_0_10px_rgba(244,63,94,0.3)] transition-all hover:h-[20%]" title="Awake"></div>
+                        <div class="flex-1 bg-indigo-600/80 h-[35%] rounded-t-lg shadow-[0_0_15px_rgba(79,70,229,0.3)] transition-all hover:h-[40%]" title="Deep"></div>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-4 relative z-10">
+                        <div class="p-3 bg-white/5 rounded-2xl border border-white/5 group-hover:border-indigo-500/20 transition-all">
+                            <p class="text-[9px] text-gray-500 uppercase font-black mb-1">Deep</p>
+                            <p class="text-sm font-black text-indigo-400">1h 45m</p>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-2xl border border-white/5 group-hover:border-cyan-500/20 transition-all">
+                            <p class="text-[9px] text-gray-500 uppercase font-black mb-1">REM</p>
+                            <p class="text-sm font-black text-cyan-400">2h 12m</p>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-2xl border border-white/5 group-hover:border-indigo-400/20 transition-all">
+                            <p class="text-[9px] text-gray-500 uppercase font-black mb-1">Light</p>
+                            <p class="text-sm font-black text-indigo-300">3h 25m</p>
+                        </div>
+                        <div class="p-3 bg-white/5 rounded-2xl border border-white/5 group-hover:border-rose-500/20 transition-all">
+                            <p class="text-[9px] text-gray-500 uppercase font-black mb-1">Awake</p>
+                            <p class="text-sm font-black text-rose-400">20m</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stress Level & Recovery (Feature 2, 22) -->
+                <div class="glass-panel p-8 group">
+                    <div class="flex justify-between items-center mb-8">
+                        <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Stress Monitoring</h3>
+                        <div class="p-2 bg-amber-500/10 rounded-lg text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]"><i data-lucide="zap-off" class="w-4 h-4"></i></div>
+                    </div>
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <p class="text-[10px] text-gray-500 uppercase font-black mb-1">Current State</p>
+                            <p class="text-3xl font-black text-amber-400 tracking-tighter drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]">Moderate</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-500 uppercase font-black mb-1">Recovery Time</p>
+                            <p class="text-3xl font-black text-cyan-400 tracking-tighter drop-shadow-[0_0_10px_rgba(6,182,212,0.3)]">12 min</p>
+                        </div>
+                    </div>
+                    <div class="chart-container h-[160px]">
+                        <canvas id="stressChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Sleep Consistency (Feature 21, 28) -->
+                <div class="glass-panel p-8">
+                    <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-8">Consistency Metrics</h3>
+                    <div class="space-y-8">
+                        <div>
+                            <div class="flex justify-between text-[10px] text-gray-500 font-black uppercase mb-3">
+                                <span>Sleep Score</span>
+                                <span class="text-indigo-400">88%</span>
+                            </div>
+                            <div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                                <div class="bg-indigo-500 h-full w-[88%] rounded-full shadow-[0_0_12px_rgba(99,102,241,0.5)]"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-[10px] text-gray-500 font-black uppercase mb-3">
+                                <span>Wake Consistency</span>
+                                <span class="text-cyan-400">94%</span>
+                            </div>
+                            <div class="w-full bg-white/5 h-2.5 rounded-full overflow-hidden border border-white/5 p-[1px]">
+                                <div class="bg-cyan-500 h-full w-[94%] rounded-full shadow-[0_0_12px_rgba(6,182,212,0.5)]"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Meditation Tracking (Feature 25) -->
+                <div class="glass-panel p-8 md:col-span-2 relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-indigo-600/5 via-transparent to-rose-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div class="flex justify-between items-center mb-8 relative z-10">
+                        <div>
+                            <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2">Mindfulness</h3>
+                            <p class="text-2xl font-black text-gray-100 tracking-tight">Meditation & Relaxation</p>
+                        </div>
+                        <button class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-[11px] uppercase font-black rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(139,92,246,0.5)] transition-all active:scale-95">Start Session</button>
+                    </div>
+                    <div class="flex items-center gap-12 relative z-10">
+                        <div class="flex-1 flex flex-col gap-5">
+                            <div class="flex items-center gap-4">
+                                <div class="w-3 h-3 rounded-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]"></div>
+                                <span class="text-xs font-bold text-gray-300 tracking-tight">Weekly Goal: <span class="text-white">45 / 60 min</span></span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-3 h-3 rounded-full bg-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.8)]"></div>
+                                <span class="text-xs font-bold text-gray-300 tracking-tight">Longest Streak: <span class="text-rose-400">12 days</span></span>
+                            </div>
+                        </div>
+                        <div class="flex-1 grid grid-cols-7 gap-2">
+                            <div class="h-12 bg-indigo-500 rounded-lg shadow-[0_0_12px_rgba(99,102,241,0.5)]"></div>
+                            <div class="h-12 bg-white/5 rounded-lg border border-white/5"></div>
+                            <div class="h-12 bg-indigo-500 rounded-lg shadow-[0_0_12px_rgba(99,102,241,0.5)]"></div>
+                            <div class="h-12 bg-indigo-500 rounded-lg shadow-[0_0_12px_rgba(99,102,241,0.5)]"></div>
+                            <div class="h-12 bg-white/5 rounded-lg border border-white/5"></div>
+                            <div class="h-12 bg-indigo-500 rounded-lg shadow-[0_0_12px_rgba(99,102,241,0.5)]"></div>
+                            <div class="h-12 bg-indigo-500/30 rounded-lg border border-indigo-500/20"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. HISTORY TAB -->
+        <div id="history" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
+                <!-- Weekly & Monthly (Feature 12, 13) -->
+                <div class="glass-panel p-8 md:col-span-3 group relative overflow-hidden">
+                    <div class="absolute inset-0 bg-cyan-500/5 backdrop-blur-3xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    <div class="absolute -top-24 -left-24 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl group-hover:bg-cyan-500/10 transition-all"></div>
+                    <div class="flex justify-between items-center mb-10 relative z-10">
+                        <div>
+                            <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest mb-2">Health Trends</h3>
+                            <p class="text-2xl font-black text-gray-100 tracking-tight">Long-term Progress</p>
+                        </div>
+                        <div class="flex gap-3 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+                            <button class="px-5 py-2 bg-indigo-500 text-white text-[10px] font-black uppercase rounded-xl shadow-[0_0_15px_rgba(99,102,241,0.5)] transition-all">Weekly</button>
+                            <button class="px-5 py-2 text-gray-500 text-[10px] font-black uppercase rounded-xl hover:text-gray-300 transition-colors">Monthly</button>
+                        </div>
+                    </div>
+                    <div class="chart-container h-[280px] relative z-10">
+                        <canvas id="historyChart"></canvas>
+                    </div>
+                </div>
+                <!-- Reports & History Records (Feature 13, 30) -->
+                <div class="glass-panel p-8 flex flex-col gap-6 group">
+                    <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Past Records</h3>
+                    <div class="flex flex-col gap-4">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center group/item cursor-pointer hover:border-cyan-500/40 hover:bg-cyan-500/5 transition-all">
+                            <div>
+                                <p class="text-[9px] text-gray-500 uppercase font-black mb-1">February 2026</p>
+                                <p class="text-sm font-black text-gray-200">Monthly Report</p>
+                            </div>
+                            <div class="w-10 h-10 bg-cyan-500/10 rounded-xl flex items-center justify-center text-cyan-400 group-hover/item:bg-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)] transition-all">
+                                <i data-lucide="download" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center group/item cursor-pointer hover:border-purple-500/40 hover:bg-purple-500/5 transition-all">
+                            <div>
+                                <p class="text-[9px] text-gray-500 uppercase font-black mb-1">Week 9</p>
+                                <p class="text-sm font-black text-gray-200">Performance Summary</p>
+                            </div>
+                            <div class="w-10 h-10 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 group-hover/item:bg-purple-500/20 shadow-[0_0_15px_rgba(139,92,246,0.1)] transition-all">
+                                <i data-lucide="download" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/5 flex justify-between items-center group/item cursor-pointer hover:border-rose-500/40 hover:bg-rose-500/5 transition-all">
+                            <div>
+                                <p class="text-[9px] text-gray-500 uppercase font-black mb-1">January 2026</p>
+                                <p class="text-sm font-black text-gray-200">Annual Baseline</p>
+                            </div>
+                            <div class="w-10 h-10 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-400 group-hover/item:bg-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.1)] transition-all">
+                                <i data-lucide="download" class="w-5 h-5"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="mt-auto py-4 bg-indigo-500/10 text-white font-black text-[10px] uppercase rounded-2xl border border-white/10 hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all">Explore All History</button>
+                </div>
+            </div>
+
+            <!-- Daily Health Timeline (Feature 29) -->
+            <div class="glass-panel p-8 group relative overflow-hidden">
+                <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-rose-500/5 rounded-full blur-3xl group-hover:bg-rose-500/10 transition-all"></div>
+                <div class="flex justify-between items-center mb-10 relative z-10">
+                    <h3 class="text-gray-500 text-[10px] font-black uppercase tracking-widest">Daily Health Timeline</h3>
+                    <span class="text-[10px] text-gray-400 font-black uppercase tracking-widest px-4 py-1.5 bg-white/5 rounded-full border border-white/5">Today, March 6</span>
+                </div>
+                <div class="relative pl-12 space-y-12 before:content-[''] before:absolute before:left-[19px] before:top-2 before:bottom-2 before:w-[2px] before:bg-indigo-500 before:shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+                    <div class="relative group/tl">
+                        <div class="absolute -left-[35px] top-1 w-6 h-6 rounded-full bg-cyan-500 border-[6px] border-[#050505] shadow-[0_0_15px_rgba(6,182,212,0.6)] group-hover/tl:scale-125 transition-transform z-10"></div>
+                        <div class="bg-white/5 p-5 rounded-2xl border border-white/5 group-hover/tl:border-cyan-500/30 group-hover/tl:bg-cyan-500/5 transition-all">
+                            <p class="text-[10px] text-cyan-400 uppercase font-black mb-2 tracking-widest">07:15 AM - Wake Up</p>
+                            <p class="text-sm text-gray-300 font-medium">Resting heart rate at its lowest (52 BPM). Sleep quality score reached <span class="text-cyan-400 font-black">92%</span>.</p>
+                        </div>
+                    </div>
+                    <div class="relative group/tl">
+                        <div class="absolute -left-[35px] top-1 w-6 h-6 rounded-full bg-amber-500 border-[6px] border-[#050505] shadow-[0_0_15px_rgba(245,158,11,0.6)] group-hover/tl:scale-125 transition-transform z-10"></div>
+                        <div class="bg-white/5 p-5 rounded-2xl border border-white/5 group-hover/tl:border-amber-500/30 group-hover/tl:bg-amber-500/5 transition-all">
+                            <p class="text-[10px] text-amber-400 uppercase font-black mb-2 tracking-widest">10:30 AM - Stress Peak</p>
+                            <p class="text-sm text-gray-300 font-medium">Moderate stress detected during focused work. AI recommended a <span class="text-amber-400 font-black">2-minute breathing</span> session.</p>
+                        </div>
+                    </div>
+                    <div class="relative group/tl">
+                        <div class="absolute -left-[35px] top-1 w-6 h-6 rounded-full bg-indigo-500 border-[6px] border-[#050505] shadow-[0_0_15px_rgba(99,102,241,0.6)] group-hover/tl:scale-125 transition-transform z-10"></div>
+                        <div class="bg-white/5 p-5 rounded-2xl border border-white/5 group-hover/tl:border-indigo-500/30 group-hover/tl:bg-indigo-500/5 transition-all">
+                            <p class="text-[10px] text-indigo-400 uppercase font-black mb-2 tracking-widest">03:00 PM - High Activity</p>
+                            <p class="text-sm text-gray-300 font-medium">3.2 km brisk walk detected. Heart rate reached <span class="text-indigo-400 font-black">128 BPM</span> (Cardio Zone).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bio Report Modal -->
+    <div id="bioReportModal" class="modal-overlay">
+        <div class="modal-content glass-panel p-10 border-white/10 relative">
+            <button onclick="toggleBioReport(false)" class="absolute top-8 right-8 w-12 h-12 rounded-2xl glass-panel flex items-center justify-center hover:bg-white/10 transition-all border-white/10 text-gray-400 hover:text-white">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="flex items-center gap-5 mb-12">
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-600/20 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-[0_0_25px_rgba(99,102,241,0.3)]">
+                    <i data-lucide="sparkles" class="w-8 h-8"></i>
+                </div>
+                <div>
+                    <h2 class="text-4xl font-black tracking-tight">Full <span class="text-indigo-400">Bio-Report</span></h2>
+                    <p class="text-gray-500 text-sm font-medium">Generated by AURA-AI • March 6, 2026</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <!-- Analysis Section -->
+                <div>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-300 mb-6">Autonomous Analysis</h3>
+                    <div class="space-y-8">
+                        <div class="report-section border-emerald-500/30">
+                            <h4 class="text-sm font-black text-emerald-400 mb-2 uppercase tracking-wider">Metabolic Efficiency</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">Your metabolic rate is currently <span class="text-white">8% above baseline</span>. Calorie burning efficiency is optimal between 10 AM and 4 PM. Suggested protein intake: 140g for muscle recovery.</p>
+                        </div>
+                        <div class="report-section border-purple-500/30">
+                            <h4 class="text-sm font-black text-purple-400 mb-2 uppercase tracking-wider">Neural Recovery</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">HRV stability indicates a deep <span class="text-white">parasympathetic nervous system</span> reset during the last 3 hours of sleep. CNS readiness is at a 94/100 peak.</p>
+                        </div>
+                        <div class="report-section border-rose-500/30">
+                            <h4 class="text-sm font-black text-rose-400 mb-2 uppercase tracking-wider">Cardiovascular Stress</h4>
+                            <p class="text-xs text-gray-400 leading-relaxed">Detected a 15% increase in resting pulse variability post-caffeine intake at 2 PM. Consider switching to <span class="text-white">L-Theanine</span> pairing for smoother energy curves.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations Section -->
+                <div>
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.25em] text-cyan-300 mb-6">AI Recommendations</h3>
+                    <div class="glass-panel p-6 bg-cyan-500/5 border-cyan-500/20 mb-6">
+                        <div class="flex items-start gap-4 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center text-cyan-400">
+                                <i data-lucide="activity" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-sm font-black text-gray-200">Training Intensity</h5>
+                                <p class="text-[11px] text-gray-500">Increase zone 4 cardio by 15 mins today.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-rose-500/20 flex items-center justify-center text-rose-400">
+                                <i data-lucide="moon" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-sm font-black text-gray-200">Sleep Optimization</h5>
+                                <p class="text-[11px] text-gray-500">Lower room temperature to 68°F by 9 PM.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300 mb-6">Predicted Trends</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center text-xs p-3 rounded-xl bg-white/5 border border-white/5">
+                            <span class="text-gray-400">Energy Levels (Next 24h)</span>
+                            <span class="text-emerald-400 font-black">STABLE ↗</span>
+                        </div>
+                        <div class="flex justify-between items-center text-xs p-3 rounded-xl bg-white/5 border border-white/5">
+                            <span class="text-gray-400">Stress Vulnerability</span>
+                            <span class="text-rose-400 font-black">LOW ↘</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-12 pt-8 border-t border-white/5 flex justify-between items-center">
+                <div class="flex gap-3">
+                    <button class="px-6 py-3 bg-white/5 text-[10px] font-black uppercase tracking-widest rounded-xl border border-white/10 hover:bg-white/10 transition-all">Download PDF</button>
+                    <button class="px-6 py-3 bg-white/5 text-[10px] font-black uppercase tracking-widest rounded-xl border border-white/10 hover:bg-white/10 transition-all">Share Report</button>
+                </div>
+                <button onclick="toggleBioReport(false)" class="px-10 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-[0_0_20px_rgba(79,70,229,0.4)] hover:shadow-[0_0_35px_rgba(79,70,229,0.6)] transition-all">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        lucide.createIcons();
+
+        // THEME TOGGLE LOGIC
+        function toggleTheme() {
+            const body = document.body;
+            const sunIcon = document.getElementById('theme-sun');
+            const moonIcon = document.getElementById('theme-moon');
+            const isLight = body.classList.toggle('light-mode');
+            
+            // Toggle icons
+            if (isLight) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+                localStorage.setItem('theme', 'light');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+                localStorage.setItem('theme', 'dark');
+            }
+
+            // Update charts
+            updateChartsTheme(isLight);
+        }
+
+        function updateChartsTheme(isLight) {
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-label').trim();
+            const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--chart-grid').trim();
+            
+            Chart.helpers.each(Chart.instances, function(instance) {
+                // Update text and grid colors
+                if (instance.options.scales) {
+                    if (instance.options.scales.x) {
+                        instance.options.scales.x.ticks.color = textColor;
+                        instance.options.scales.x.grid.color = gridColor;
+                    }
+                    if (instance.options.scales.y) {
+                        instance.options.scales.y.ticks.color = textColor;
+                        instance.options.scales.y.grid.color = gridColor;
+                    }
+                }
+                
+                // Update doughnut background for healthScoreChart
+                if (instance.config.type === 'doughnut' && instance.canvas.id === 'healthScoreChart') {
+                    instance.data.datasets[0].backgroundColor[1] = gridColor;
+                }
+                
+                instance.update();
+            });
+        }
+
+        // Apply theme on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            const sunIcon = document.getElementById('theme-sun');
+            const moonIcon = document.getElementById('theme-moon');
+            
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                if (sunIcon) sunIcon.classList.remove('hidden');
+                if (moonIcon) moonIcon.classList.add('hidden');
+                setTimeout(() => updateChartsTheme(true), 100);
+            } else {
+                document.body.classList.remove('light-mode');
+                if (sunIcon) sunIcon.classList.add('hidden');
+                if (moonIcon) moonIcon.classList.remove('hidden');
+                setTimeout(() => updateChartsTheme(false), 100);
+            }
+        });
+
+        // Bio Report Modal Logic
+        function toggleBioReport(show) {
+            const modal = document.getElementById('bioReportModal');
+            if (show) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // TAB SWITCHING LOGIC
+        function switchTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.nav-link');
+            const targetTab = document.getElementById(tabId);
+
+            if (targetTab.classList.contains('active')) return;
+
+            // 1. Deactivate current state
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+
+            // 2. Activate new state
+            targetTab.classList.add('active');
+            
+            const activeBtn = document.querySelector(`[data-tab-btn="${tabId}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // 3. Update header title
+            const titles = {
+                'overview': 'Health <span class="text-purple-400">Overview</span>',
+                'vitals': 'Core <span class="text-rose-400">Vitals</span>',
+                'activity': 'Fitness & <span class="text-indigo-400">Activity</span>',
+                'sleep': 'Sleep & <span class="text-cyan-400">Stress</span>',
+                'history': 'Health <span class="text-emerald-400">History</span>'
+            };
+            if (document.getElementById('tab-title')) {
+                document.getElementById('tab-title').innerHTML = titles[tabId];
+            }
+        }
+
+        // CHARTS INITIALIZATION
+        Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--chart-label').trim() || 'rgba(255, 255, 255, 0.3)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.font.weight = '600';
+
+        // Helper for gradients
+        function getGradient(ctx, colorStart, colorEnd, height = 200) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, colorStart);
+            gradient.addColorStop(1, colorEnd);
+            return gradient;
+        }
+
+        // 1. Health Score Ring (Overview)
+        const healthCtx = document.getElementById('healthScoreChart').getContext('2d');
+
+        new Chart(healthCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [92, 8],
+                    backgroundColor: ['#8b5cf6', 'var(--chart-grid)'],
+                    borderWidth: 0,
+                    borderRadius: 20,
+                    circumference: 270,
+                    rotation: 225
+                }]
+            },
+            options: { 
+                cutout: '85%', 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                animation: { duration: 2500, easing: 'easeOutQuart' }
+            }
+        });
+
+        // 2. Nighttime HR Chart (Vitals)
+        const nightCtx = document.getElementById('nightHRChart').getContext('2d');
+        new Chart(nightCtx, {
+            type: 'line',
+            data: {
+                labels: ['11PM', '12AM', '1AM', '2AM', '3AM', '4AM', '5AM', '6AM', '7AM'],
+                datasets: [{
+                    data: [65, 62, 58, 54, 52, 53, 55, 54, 58],
+                    borderColor: '#06b6d4',
+                    borderWidth: 3.5,
+                    tension: 0.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#06b6d4',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3,
+                    fill: true,
+                    backgroundColor: getGradient(nightCtx, 'rgba(6, 182, 212, 0.3)', 'rgba(6, 182, 212, 0)', 150)
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: '700' }, color: 'var(--chart-label)' } },
+                    y: { grid: { color: 'var(--chart-grid)' }, ticks: { font: { size: 10, weight: '700' }, color: 'var(--chart-label)' } }
+                }
+            }
+        });
+
+        // 3. Oxygen Trend (Vitals) - Sparkline
+        new Chart(document.getElementById('oxygenTrendChart'), {
+            type: 'line',
+            data: {
+                labels: Array(10).fill(''),
+                datasets: [{
+                    data: [98, 97, 98, 99, 98, 98, 97, 98, 99, 98],
+                    borderColor: '#ec4899',
+                    borderWidth: 3,
+                    tension: 0.5,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: 'rgba(236, 72, 153, 0.1)'
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false, 
+                plugins: { legend: { display: false }, tooltip: { enabled: false } }, 
+                scales: { x: { display: false }, y: { display: false } } 
+            }
+        });
+
+        // 4. Stress Chart (Sleep & Stress)
+        const stressCtx = document.getElementById('stressChart').getContext('2d');
+        new Chart(stressCtx, {
+            type: 'line',
+            data: {
+                labels: ['8AM', '10AM', '12PM', '2PM', '4PM', '6PM', '8PM'],
+                datasets: [{
+                    label: 'Stress Level',
+                    data: [20, 45, 30, 65, 40, 35, 25],
+                    borderColor: '#f59e0b',
+                    borderWidth: 3.5,
+                    tension: 0.4,
+                    fill: true,
+                    backgroundColor: getGradient(stressCtx, 'rgba(245, 158, 11, 0.25)', 'rgba(245, 158, 11, 0)', 150),
+                    pointBackgroundColor: '#f59e0b',
+                    pointRadius: 0,
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#f59e0b',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: '700' }, color: 'var(--chart-label)' } },
+                    y: { grid: { color: 'var(--chart-grid)' }, min: 0, max: 100, ticks: { font: { size: 10, weight: '700' }, color: 'var(--chart-label)', stepSize: 25 } }
+                }
+            }
+        });
+
+        // 5. History Trends Chart (History)
+        const historyCtx = document.getElementById('historyChart').getContext('2d');
+        new Chart(historyCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Health Score',
+                        data: [85, 88, 92, 90, 87, 94, 92],
+                        backgroundColor: getGradient(historyCtx, '#8b5cf6', 'rgba(139, 92, 246, 0.3)', 300),
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barThickness: 14
+                    },
+                    {
+                        label: 'Activity',
+                        data: [70, 75, 85, 80, 78, 90, 85],
+                        backgroundColor: getGradient(historyCtx, '#06b6d4', 'rgba(6, 182, 212, 0.3)', 300),
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barThickness: 14
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { 
+                    legend: { 
+                        position: 'top', 
+                        align: 'end',
+                        labels: { 
+                            boxWidth: 10, 
+                            boxHeight: 10,
+                            usePointStyle: true,
+                            padding: 24, 
+                            font: { size: 11, weight: '800' }, 
+                            color: 'rgba(255,255,255,0.6)' 
+                        } 
+                    } 
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10, weight: '700' }, color: 'var(--chart-label)' } },
+                    y: { grid: { color: 'var(--chart-grid)' }, ticks: { font: { size: 10, weight: '700' }, color: 'var(--chart-label)' } }
+                }
+            }
+        });
+
+        // Initialize animations on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set staggered animation delays once for all tab content
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                const panels = tab.querySelectorAll('.glass-panel');
+                panels.forEach((panel, index) => {
+                    panel.style.animationDelay = `${(index + 1) * 0.1}s`;
+                });
+            });
+
+            // Trigger initial tab animation
+            switchTab('overview');
+            
+            // Add floating animations to decorative elements
+            const floaters = [
+                '.sidebar .bg-purple-600', 
+                '.health-score-ring',
+                '[data-lucide="sparkles"]'
+            ];
+            floaters.forEach(selector => {
+                const elements = document.querySelectorAll(selector);
+                elements.forEach(el => el.classList.add('float-anim'));
+            });
+        });
+
+        // Emergency ID Copy Function
+        function copyEmergencyID() {
+            const id = document.getElementById('emergency-id').innerText;
+            navigator.clipboard.writeText(id).then(() => {
+                showToast('Emergency ID copied to clipboard', 'success');
+            });
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed bottom-24 right-8 px-6 py-4 rounded-2xl glass-panel z-[100] border-white/10 shadow-2xl transform translate-y-20 opacity-0 transition-all duration-500 flex items-center gap-4`;
+            
+            const icons = {
+                info: '<i data-lucide="info" class="w-5 h-5 text-indigo-400"></i>',
+                success: '<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>',
+                warning: '<i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400"></i>'
+            };
+
+            toast.innerHTML = `
+                ${icons[type]}
+                <span class="text-sm font-bold text-gray-200 tracking-tight">${message}</span>
+            `;
+
+            document.body.appendChild(toast);
+            lucide.createIcons();
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-y-20', 'opacity-0');
+            }, 100);
+
+            // Animate out
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                setTimeout(() => {
+                    toast.remove();
+                }, 500);
+            }, 3000);
+        }
+
+    </script>
+</body>
+
+</html>
